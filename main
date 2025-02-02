@@ -1,0 +1,178 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+import getpass
+import json
+
+# Set up the WebDriver
+username = input("Input your username")
+password = getpass.getpass("Enter your password: ")
+driver = webdriver.Chrome()
+try:
+    # Navigate to Google's homepage
+    driver.get('https://info-car.pl/new/prawo-jazdy/sprawdz-wolny-termin')
+
+    # Wait for the page to load completely
+    time.sleep(1)  # Adjust this if necessary
+    buttonCookies = WebDriverWait(driver, 15).until(
+        EC.element_to_be_clickable((By.ID, 'cookiescript_reject'))
+    )
+    buttonCookies.click()
+
+    loginButton = WebDriverWait(driver, 15).until(
+        EC.presence_of_element_located((By.XPATH, "//button[.//span[text()='Zaloguj się, aby kontynuować']]"))
+    )
+    loginButton.click()
+
+    # Wait for the results to load
+    email_input = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.ID, 'username'))
+    )
+    email_input.send_keys(username)
+    pass_input = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.ID, 'password'))
+    )
+    pass_input.send_keys(password)
+    
+    loginButton = driver.find_element(By.XPATH, "//button[.//span[text()='Zaloguj się']]")
+    # loginButton.click()
+    driver.execute_script("arguments[0].click();", loginButton)
+
+    # listOfViovidoships = ['małopolskie','podkarpackie', 'śląskie']
+    viovodoshipCities = {
+        'śląskie': ['word-częstochowa', 'word-katowice', 'word-katowice o/t dąbrowa górnicza', 'word-katowice o/t tychy', 'word-katowice o/t jastrzębie zdrój', 'word-katowice o/t rybnik', 'word-katowice o/t bytom', 'word-bielsko-biała', 'word-częstochowa o/t zawiercie'],
+        'małopolskie' : ['mord-kraków', 'mord-kraków/o kraków', 'mord-tarnów', 'mord-nowy sącz', 'mord-kraków/o oświęcim', 'word-nowy sącz o/ nowy targ'],
+        'podkarpackie': ['word-tarnobrzeg', 'word-rzeszów', 'word-krosno', 'word-przemyśl']
+    }
+    allDetails = {}
+    for viovodoship, cities in viovodoshipCities.items():
+        for city in cities:
+            radio_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((
+                    By.XPATH, "//span[text()='Egzamin na prawo jazdy (PKK)']/preceding-sibling::div[@class='item__checkmark']"
+                ))
+            )
+            driver.execute_script("arguments[0].scrollIntoView(true);", radio_button)
+            driver.execute_script("arguments[0].click();", radio_button)
+            time.sleep(1)
+
+            katSelect = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//input[@title='Wybierz kategorię']"))
+            )
+            driver.execute_script("arguments[0].scrollIntoView(true);", katSelect)
+            driver.execute_script("arguments[0].click();", katSelect)
+            optionKat = WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.XPATH, "//li[@id='a']"))
+            )
+            driver.execute_script("arguments[0].scrollIntoView(true);", optionKat)
+            driver.execute_script("arguments[0].click();", optionKat)
+
+            ViovodoshipSelect = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//input[@title='Wybierz województwo']"))
+            )
+            # Scroll to the element to ensure it's in view
+            driver.execute_script("arguments[0].scrollIntoView(true);", ViovodoshipSelect)
+            driver.execute_script("arguments[0].click();", ViovodoshipSelect)
+
+            optionViovodoship = WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.XPATH, f"//li[@id='{viovodoship}']"))
+            )
+            # Scroll to the option to ensure it's in view
+            driver.execute_script("arguments[0].scrollIntoView(true);", optionViovodoship)
+            driver.execute_script("arguments[0].click();", optionViovodoship)
+        
+        
+            citySelect = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//input[@title='Wybierz ośrodek egzaminacyjny']"))
+            )
+            # Scroll to the element to ensure it's in view
+            driver.execute_script("arguments[0].scrollIntoView(true);", citySelect)
+            driver.execute_script("arguments[0].click();", citySelect)
+
+            optionCity = WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.XPATH, f"//li[@id='{city}']"))
+            )
+            # Scroll to the option to ensure it's in view
+            driver.execute_script("arguments[0].scrollIntoView(true);", optionCity)
+            driver.execute_script("arguments[0].click();", optionCity)
+
+            nextButton = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[.//span[text()='Dalej']]"))
+            )
+            driver.execute_script("arguments[0].scrollIntoView(true);", nextButton)
+            driver.execute_script("arguments[0].click();", nextButton)
+            
+            # practice = WebDriverWait(driver, 10).until(
+            #     EC.element_to_be_clickable((By.CSS_SELECTOR, "input[aria-label='PRACTICE']"))
+            # )
+            # driver.execute_script("arguments[0].scrollIntoView(true);", practice)
+            # driver.execute_script("arguments[0].click();", practice)
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "input[aria-label='PRACTICE']"))
+            )
+
+            # Find the radio button
+            practice_radio = driver.find_element(By.CSS_SELECTOR, "input[aria-label='PRACTICE']")
+
+            # Scroll to the radio button to ensure it's in view
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", practice_radio)
+
+            # Use JavaScript to click the radio button
+            driver.execute_script("arguments[0].click();", practice_radio)
+
+
+            try:
+                no_exams_message = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, "//span[text()='Brak egzaminów spełniających wybrane kryteria']"))
+                )
+                print("Brak egzaminów spełniających wybrane kryteria")
+                allDetails.setdefault(viovodoship,{}).setdefault(city, ["No exam found"])
+            except:
+                # If the "no exams" message is not present, proceed to collect exam details
+                try:
+                    accordion = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, 'exam-days-accordion'))
+                    )
+                    details = []
+                    exam_items = accordion.find_elements(By.CSS_SELECTOR, '.accordion-item')
+                    for item in exam_items:
+                        date = item.find_element(By.CSS_SELECTOR, 'h5.m-0').text
+                        types = item.find_elements(By.CSS_SELECTOR, '.exam-type')
+                        times = item.find_elements(By.CSS_SELECTOR, '.exam-time span')
+                        places = item.find_elements(By.CSS_SELECTOR, '.exam-places')
+
+                        # Collecting details for each exam type
+                        for exam_type, exam_time, exam_place in zip(types, times, places):
+                            detail = {
+                                'date': date,
+                                'type': exam_type.text,
+                                'time': exam_time.text,
+                                'places': exam_place.text
+                            }
+                            details.append(detail)
+                    allDetails.setdefault(viovodoship,{}).setdefault(city, details)
+                    # Print the collected details
+                    for detail in details:
+                        print(detail)
+                except:
+                    print("No exam days accordion found.")
+                
+            with open("logging.json", 'w') as json_file:
+                json.dump(allDetails, json_file, indent=4)
+            time.sleep(5)
+            # input("Press Enter to continue...")
+                
+            backButton = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[.//span[text()='Cofnij']]"))
+            )
+            driver.execute_script("arguments[0].scrollIntoView(true);", backButton)
+            driver.execute_script("arguments[0].click();", backButton)
+            time.sleep(2)
+            
+
+finally:
+    # Close the browser
+    driver.quit()
